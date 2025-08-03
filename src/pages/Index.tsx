@@ -38,7 +38,7 @@ const Index = () => {
         <div className="container mx-auto px-4 py-6">
           <div className="flex justify-between items-center">
             <div>
-              <h1 className="text-2xl font-bold text-primary">Kamala Massage</h1>
+              <h1 className="text-2xl font-bold text-primary">Carol's Kamala Massage</h1>
               <p className="text-sm text-muted-foreground">Mobile Massage & Personal Training</p>
             </div>
             <Link to="/booking">
@@ -168,8 +168,8 @@ const Index = () => {
           <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
             <div className="text-center">
               <Phone className="h-8 w-8 mx-auto text-primary mb-3" />
-              <h4 className="font-semibold mb-2">Call Us</h4>
-              <p className="text-muted-foreground">(555) 123-4567</p>
+              <h4 className="font-semibold mb-2">Call Carol</h4>
+              <p className="text-muted-foreground">(219) 299-3846</p>
             </div>
             <div className="text-center">
               <Mail className="h-8 w-8 mx-auto text-primary mb-3" />
@@ -188,7 +188,7 @@ const Index = () => {
       {/* Footer */}
       <footer className="py-8 px-4 border-t bg-muted/30">
         <div className="container mx-auto text-center">
-          <h4 className="font-semibold text-primary mb-2">Kamala Massage</h4>
+          <h4 className="font-semibold text-primary mb-2">Carol's Kamala Massage</h4>
           <p className="text-sm text-muted-foreground">
             Professional Mobile Massage & Personal Training Services
           </p>
