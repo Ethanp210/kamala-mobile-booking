@@ -174,7 +174,7 @@ const Index = () => {
             <div className="text-center">
               <Mail className="h-8 w-8 mx-auto text-primary mb-3" />
               <h4 className="font-semibold mb-2">Email</h4>
-              <p className="text-muted-foreground">info@kamalamassage.com</p>
+              <p className="text-muted-foreground"></p>
             </div>
             <div className="text-center">
               <Clock className="h-8 w-8 mx-auto text-primary mb-3" />
