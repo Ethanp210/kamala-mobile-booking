@@ -18,12 +18,15 @@ export type Database = {
         Row: {
           appointment_date: string
           appointment_time: string
+          cancellation_reason: string | null
+          cancelled_at: string | null
           client_address: string
           client_email: string
           client_name: string
           client_phone: string
           created_at: string
           duration_minutes: number
+          external_calendar_id: string | null
           id: string
           notes: string | null
           service_id: string
@@ -35,12 +38,15 @@ export type Database = {
         Insert: {
           appointment_date: string
           appointment_time: string
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
           client_address: string
           client_email: string
           client_name: string
           client_phone: string
           created_at?: string
           duration_minutes: number
+          external_calendar_id?: string | null
           id?: string
           notes?: string | null
           service_id: string
@@ -52,12 +58,15 @@ export type Database = {
         Update: {
           appointment_date?: string
           appointment_time?: string
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
           client_address?: string
           client_email?: string
           client_name?: string
           client_phone?: string
           created_at?: string
           duration_minutes?: number
+          external_calendar_id?: string | null
           id?: string
           notes?: string | null
           service_id?: string
@@ -165,6 +174,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_available_time_slots: {
+        Args: { booking_date: string; service_duration_minutes?: number }
+        Returns: string[]
+      }
       get_user_role: {
         Args: { user_id: string }
         Returns: Database["public"]["Enums"]["user_role"]
