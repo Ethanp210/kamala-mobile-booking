@@ -41,12 +41,19 @@ const Index = () => {
               <h1 className="text-2xl font-bold text-primary">Kamala Massage</h1>
               <p className="text-sm text-muted-foreground">Mobile Massage & Personal Training</p>
             </div>
-            <Link to="/booking">
-              <Button size="lg" className="shadow-md">
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                Book Now
-              </Button>
-            </Link>
+            <div className="flex gap-2">
+              <Link to="/booking">
+                <Button size="lg" className="shadow-md">
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  Book Now
+                </Button>
+              </Link>
+              <Link to="/admin">
+                <Button variant="outline" size="lg">
+                  Admin
+                </Button>
+              </Link>
+            </div>
           </div>
         </div>
       </header>
