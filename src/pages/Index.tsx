@@ -42,10 +42,10 @@ const Index = () => {
               <p className="text-sm text-muted-foreground">Mobile Massage & Personal Training</p>
             </div>
             <div className="flex gap-2">
-              <Link to="/booking">
+              <Link to="/auth">
                 <Button size="lg" className="shadow-md">
                   <CalendarIcon className="mr-2 h-4 w-4" />
-                  Book Now
+                  Sign In / Book Now
                 </Button>
               </Link>
               <Link to="/admin">
@@ -69,10 +69,10 @@ const Index = () => {
             Our mobile services bring relaxation and wellness directly to your doorstep.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link to="/booking">
+            <Link to="/auth">
               <Button size="lg" className="px-8 py-6 text-lg shadow-lg">
                 <CalendarIcon className="mr-2 h-5 w-5" />
-                Book Your Session
+                Sign In to Book
               </Button>
             </Link>
             <Button variant="outline" size="lg" className="px-8 py-6 text-lg">
@@ -156,9 +156,9 @@ const Index = () => {
             ))}
           </div>
           <div className="text-center mt-12">
-            <Link to="/booking">
+            <Link to="/auth">
               <Button size="lg" variant="outline">
-                View All Services & Book
+                Sign In to View Services & Book
               </Button>
             </Link>
           </div>

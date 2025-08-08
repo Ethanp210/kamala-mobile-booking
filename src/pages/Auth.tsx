@@ -24,7 +24,18 @@ export default function Auth() {
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
         setUser(session.user);
-        navigate("/admin");
+        // Get user role to determine redirect
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', session.user.id)
+          .single();
+        
+        if (profile?.role === 'admin' || profile?.role === 'super_admin') {
+          navigate("/admin");
+        } else {
+          navigate("/dashboard");
+        }
       }
     };
 
@@ -32,10 +43,21 @@ export default function Auth() {
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
+      async (event, session) => {
         if (session?.user) {
           setUser(session.user);
-          navigate("/admin");
+          // Get user role to determine redirect
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('role')
+            .eq('id', session.user.id)
+            .single();
+          
+          if (profile?.role === 'admin' || profile?.role === 'super_admin') {
+            navigate("/admin");
+          } else {
+            navigate("/dashboard");
+          }
         } else {
           setUser(null);
         }
@@ -87,7 +109,7 @@ export default function Auth() {
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/admin`
+          emailRedirectTo: `${window.location.origin}/dashboard`
         }
       });
 
@@ -118,9 +140,9 @@ export default function Auth() {
     <div className="min-h-screen flex items-center justify-center bg-background px-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl">Admin Access</CardTitle>
+          <CardTitle className="text-2xl">Welcome to Kamala Massage</CardTitle>
           <CardDescription>
-            Sign in to manage appointments and view customer information
+            Sign in to your account or create a new one to book appointments
           </CardDescription>
         </CardHeader>
         <CardContent>

@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -36,7 +37,45 @@ export function BookingForm({ services }: BookingFormProps) {
     notes: ""
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [user, setUser] = useState(null);
+  const [profile, setProfile] = useState(null);
+  const navigate = useNavigate();
   const { toast } = useToast();
+
+  // Check authentication status
+  useEffect(() => {
+    const getSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) {
+        toast({
+          title: "Authentication Required",
+          description: "Please sign in to book an appointment",
+          variant: "destructive"
+        });
+        navigate("/auth");
+        return;
+      }
+      
+      setUser(session.user);
+      
+      // Get user profile and prefill form
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', session.user.id)
+        .single();
+      
+      setProfile(profileData);
+      
+      // Prefill email from user account
+      setClientInfo(prev => ({
+        ...prev,
+        email: session.user.email || ""
+      }));
+    };
+
+    getSession();
+  }, [navigate, toast]);
 
   const timeSlots = [
     "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00"
@@ -61,6 +100,7 @@ export function BookingForm({ services }: BookingFormProps) {
       const { error } = await supabase
         .from('appointments')
         .insert({
+          user_id: user.id,  // Link appointment to authenticated user
           client_name: clientInfo.name,
           client_email: clientInfo.email,
           client_phone: clientInfo.phone,
@@ -77,14 +117,11 @@ export function BookingForm({ services }: BookingFormProps) {
 
       toast({
         title: "Appointment Booked!",
-        description: "Your appointment has been successfully booked. You will receive a confirmation shortly."
+        description: "Your appointment has been successfully booked. You can view it in your dashboard."
       });
 
-      // Reset form
-      setSelectedDate(undefined);
-      setSelectedService("");
-      setSelectedTime("");
-      setClientInfo({ name: "", email: "", phone: "", address: "", notes: "" });
+      // Navigate to dashboard after successful booking
+      navigate("/dashboard");
     } catch (error) {
       toast({
         title: "Booking Failed",

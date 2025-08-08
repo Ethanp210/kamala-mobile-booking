@@ -30,6 +30,7 @@ export type Database = {
           status: string
           total_price: number
           updated_at: string
+          user_id: string | null
         }
         Insert: {
           appointment_date: string
@@ -46,6 +47,7 @@ export type Database = {
           status?: string
           total_price: number
           updated_at?: string
+          user_id?: string | null
         }
         Update: {
           appointment_date?: string
@@ -62,6 +64,7 @@ export type Database = {
           status?: string
           total_price?: number
           updated_at?: string
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -105,21 +108,21 @@ export type Database = {
           created_at: string | null
           email: string | null
           id: string
-          role: string | null
+          role: Database["public"]["Enums"]["user_role"] | null
           updated_at: string | null
         }
         Insert: {
           created_at?: string | null
           email?: string | null
           id: string
-          role?: string | null
+          role?: Database["public"]["Enums"]["user_role"] | null
           updated_at?: string | null
         }
         Update: {
           created_at?: string | null
           email?: string | null
           id?: string
-          role?: string | null
+          role?: Database["public"]["Enums"]["user_role"] | null
           updated_at?: string | null
         }
         Relationships: []
@@ -162,10 +165,13 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_user_role: {
+        Args: { user_id: string }
+        Returns: Database["public"]["Enums"]["user_role"]
+      }
     }
     Enums: {
-      [_ in never]: never
+      user_role: "customer" | "admin" | "super_admin"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -292,6 +298,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      user_role: ["customer", "admin", "super_admin"],
+    },
   },
 } as const
