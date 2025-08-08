@@ -6,8 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { LogOut, Calendar, Clock, DollarSign, User, Phone, Mail, MapPin, FileText } from "lucide-react";
-import { format } from "date-fns";
+import { LogOut, Calendar, Clock, DollarSign, Users } from "lucide-react";
+import { AppointmentActions } from "@/components/AppointmentActions";
 
 interface Appointment {
   id: string;
@@ -24,45 +24,64 @@ interface Appointment {
   created_at: string;
 }
 
-export default function Admin() {
+interface Profile {
+  id: string;
+  email: string;
+  role: string;
+}
+
+const Admin = () => {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
-  const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const { toast } = useToast();
 
   useEffect(() => {
-    // Check if user is authenticated
-    const getSession = async () => {
+    const getSessionAndProfile = async () => {
       const { data: { session } } = await supabase.auth.getSession();
+      
       if (!session?.user) {
         navigate("/auth");
         return;
       }
+
       setUser(session.user);
+
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', session.user.id)
+        .single();
+
+      // If admin, redirect to admin dashboard
+      if (profileData && (profileData.role === 'admin' || profileData.role === 'super_admin')) {
+        setProfile(profileData);
+        setLoading(false);
+        return;
+      }
+
+      // If not admin, redirect to customer dashboard
+      navigate("/dashboard");
     };
 
-    getSession();
+    getSessionAndProfile();
 
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        if (!session?.user) {
-          navigate("/auth");
-        } else {
-          setUser(session.user);
-        }
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'SIGNED_OUT') {
+        navigate("/auth");
       }
-    );
+    });
 
     return () => subscription.unsubscribe();
   }, [navigate]);
 
   useEffect(() => {
-    if (user) {
+    if (user && profile) {
       fetchAppointments();
     }
-  }, [user]);
+  }, [user, profile]);
 
   const fetchAppointments = async () => {
     try {
@@ -75,13 +94,12 @@ export default function Admin() {
       if (error) throw error;
       setAppointments(data || []);
     } catch (error) {
+      console.error('Error fetching appointments:', error);
       toast({
-        title: "Error loading appointments",
-        description: "Failed to load appointment data",
+        title: "Error",
+        description: "Failed to fetch appointments",
         variant: "destructive"
       });
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -89,13 +107,13 @@ export default function Admin() {
     try {
       await supabase.auth.signOut();
       toast({
-        title: "Signed out",
-        description: "You have been successfully signed out",
+        title: "Signed Out",
+        description: "You have been signed out successfully."
       });
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to sign out",
+        description: "There was an error signing out.",
         variant: "destructive"
       });
     }
@@ -118,104 +136,89 @@ export default function Admin() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading appointments...</p>
-        </div>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
       </div>
     );
   }
 
+  const totalRevenue = appointments.filter(a => a.status === 'completed').reduce((sum, a) => sum + Number(a.total_price), 0);
+  const pendingAppointments = appointments.filter(a => a.status === 'pending').length;
+  const uniqueClients = new Set(appointments.map(a => a.client_email)).size;
+
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <div className="border-b bg-card">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-foreground">Admin Dashboard</h1>
-            <p className="text-muted-foreground">Kamala Massage Therapy</p>
+      <header className="border-b bg-card/50 backdrop-blur">
+        <div className="container mx-auto px-4 py-6">
+          <div className="flex justify-between items-center">
+            <div>
+              <h1 className="text-2xl font-bold text-primary">Admin Dashboard</h1>
+              <p className="text-sm text-muted-foreground">
+                Manage appointments and client information
+              </p>
+            </div>
+            <Button variant="outline" onClick={handleSignOut}>
+              <LogOut className="mr-2 h-4 w-4" />
+              Sign Out
+            </Button>
           </div>
-          <Button onClick={handleSignOut} variant="outline">
-            <LogOut className="h-4 w-4 mr-2" />
-            Sign Out
-          </Button>
         </div>
-      </div>
+      </header>
 
-      <div className="container mx-auto px-4 py-8">
-        {/* Stats Cards */}
+      <main className="container mx-auto px-4 py-8">
+        {/* Statistics Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center space-x-2">
-                <Calendar className="h-5 w-5 text-primary" />
-                <div>
-                  <p className="text-sm text-muted-foreground">Total Appointments</p>
-                  <p className="text-2xl font-bold">{appointments.length}</p>
-                </div>
-              </div>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Appointments</CardTitle>
+              <Calendar className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{appointments.length}</div>
             </CardContent>
           </Card>
-          
+
           <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center space-x-2">
-                <Clock className="h-5 w-5 text-primary" />
-                <div>
-                  <p className="text-sm text-muted-foreground">Pending</p>
-                  <p className="text-2xl font-bold">
-                    {appointments.filter(a => a.status === 'pending').length}
-                  </p>
-                </div>
-              </div>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Pending</CardTitle>
+              <Clock className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{pendingAppointments}</div>
             </CardContent>
           </Card>
-          
+
           <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center space-x-2">
-                <DollarSign className="h-5 w-5 text-primary" />
-                <div>
-                  <p className="text-sm text-muted-foreground">Total Revenue</p>
-                  <p className="text-2xl font-bold">
-                    ${appointments.reduce((sum, a) => sum + Number(a.total_price), 0).toFixed(2)}
-                  </p>
-                </div>
-              </div>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
+              <DollarSign className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">${totalRevenue.toFixed(2)}</div>
             </CardContent>
           </Card>
-          
+
           <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center space-x-2">
-                <User className="h-5 w-5 text-primary" />
-                <div>
-                  <p className="text-sm text-muted-foreground">Unique Clients</p>
-                  <p className="text-2xl font-bold">
-                    {new Set(appointments.map(a => a.client_email)).size}
-                  </p>
-                </div>
-              </div>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Unique Clients</CardTitle>
+              <Users className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{uniqueClients}</div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Appointments Table */}
+        {/* Recent Appointments */}
         <Card>
           <CardHeader>
             <CardTitle>Recent Appointments</CardTitle>
             <CardDescription>
-              All appointment bookings and customer information
+              Manage all client appointments and bookings
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {appointments.length === 0 ? (
-              <div className="text-center py-8">
-                <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <p className="text-muted-foreground">No appointments found</p>
-              </div>
-            ) : (
+            {appointments.length > 0 ? (
               <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>
@@ -227,47 +230,30 @@ export default function Admin() {
                       <TableHead>Price</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead>Notes</TableHead>
+                      <TableHead>Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {appointments.map((appointment) => (
                       <TableRow key={appointment.id}>
                         <TableCell>
-                          <div className="space-y-1">
-                            <div className="flex items-center space-x-2">
-                              <User className="h-4 w-4 text-muted-foreground" />
-                              <span className="font-medium">{appointment.client_name}</span>
-                            </div>
-                            {appointment.client_address && (
-                              <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                                <MapPin className="h-3 w-3" />
-                                <span>{appointment.client_address}</span>
-                              </div>
-                            )}
+                          <div className="font-medium">{appointment.client_name}</div>
+                          <div className="text-sm text-muted-foreground truncate max-w-32">
+                            {appointment.client_address}
                           </div>
                         </TableCell>
                         
                         <TableCell>
                           <div className="space-y-1">
-                            <div className="flex items-center space-x-2 text-sm">
-                              <Mail className="h-3 w-3 text-muted-foreground" />
-                              <a href={`mailto:${appointment.client_email}`} className="text-primary hover:underline">
-                                {appointment.client_email}
-                              </a>
-                            </div>
-                            <div className="flex items-center space-x-2 text-sm">
-                              <Phone className="h-3 w-3 text-muted-foreground" />
-                              <a href={`tel:${appointment.client_phone}`} className="text-primary hover:underline">
-                                {appointment.client_phone}
-                              </a>
-                            </div>
+                            <div className="text-sm">{appointment.client_email}</div>
+                            <div className="text-sm text-muted-foreground">{appointment.client_phone}</div>
                           </div>
                         </TableCell>
                         
                         <TableCell>
                           <div className="space-y-1">
                             <div className="font-medium">
-                              {format(new Date(appointment.appointment_date), 'MMM dd, yyyy')}
+                              {new Date(appointment.appointment_date).toLocaleDateString()}
                             </div>
                             <div className="text-sm text-muted-foreground">
                               {appointment.appointment_time}
@@ -275,9 +261,7 @@ export default function Admin() {
                           </div>
                         </TableCell>
                         
-                        <TableCell>
-                          {appointment.duration_minutes} mins
-                        </TableCell>
+                        <TableCell>{appointment.duration_minutes} mins</TableCell>
                         
                         <TableCell>
                           <span className="font-medium">${Number(appointment.total_price).toFixed(2)}</span>
@@ -289,25 +273,35 @@ export default function Admin() {
                           </Badge>
                         </TableCell>
                         
+                        <TableCell className="max-w-xs truncate">
+                          {appointment.notes || '-'}
+                        </TableCell>
+                        
                         <TableCell>
-                          {appointment.notes ? (
-                            <div className="flex items-center space-x-2">
-                              <FileText className="h-4 w-4 text-muted-foreground" />
-                              <span className="text-sm">{appointment.notes}</span>
-                            </div>
-                          ) : (
-                            <span className="text-muted-foreground text-sm">No notes</span>
-                          )}
+                          <AppointmentActions
+                            appointmentId={appointment.id}
+                            status={appointment.status}
+                            appointmentDate={appointment.appointment_date}
+                            appointmentTime={appointment.appointment_time}
+                            onUpdate={fetchAppointments}
+                            userRole={profile?.role}
+                          />
                         </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
                 </Table>
               </div>
+            ) : (
+              <div className="text-center py-8 text-muted-foreground">
+                No appointments found
+              </div>
             )}
           </CardContent>
         </Card>
-      </div>
+      </main>
     </div>
   );
-}
+};
+
+export default Admin;

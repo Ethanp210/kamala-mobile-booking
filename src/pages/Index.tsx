@@ -48,9 +48,9 @@ const Index = () => {
                   Sign In / Book Now
                 </Button>
               </Link>
-              <Link to="/admin">
+              <Link to="/dashboard">
                 <Button variant="outline" size="lg">
-                  Admin
+                  Dashboard
                 </Button>
               </Link>
             </div>

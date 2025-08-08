@@ -77,11 +77,34 @@ export function BookingForm({ services }: BookingFormProps) {
     getSession();
   }, [navigate, toast]);
 
-  const timeSlots = [
-    "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00"
-  ];
+  const [availableTimeSlots, setAvailableTimeSlots] = useState<string[]>([]);
 
   const selectedServiceData = services.find(s => s.id === selectedService);
+
+  // Fetch available time slots when date changes
+  useEffect(() => {
+    if (selectedDate && selectedServiceData) {
+      fetchAvailableTimeSlots();
+    }
+  }, [selectedDate, selectedServiceData]);
+
+  const fetchAvailableTimeSlots = async () => {
+    if (!selectedDate) return;
+
+    try {
+      const { data, error } = await supabase.rpc('get_available_time_slots', {
+        booking_date: format(selectedDate, 'yyyy-MM-dd'),
+        service_duration_minutes: selectedServiceData?.duration_minutes || 60
+      });
+
+      if (error) throw error;
+      setAvailableTimeSlots(data || []);
+    } catch (error) {
+      console.error('Error fetching available time slots:', error);
+      // Fallback to all slots if there's an error
+      setAvailableTimeSlots(["09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00"]);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -205,11 +228,16 @@ export function BookingForm({ services }: BookingFormProps) {
                 <SelectValue placeholder="Choose a time" />
               </SelectTrigger>
               <SelectContent>
-                {timeSlots.map((time) => (
+                {availableTimeSlots.map((time) => (
                   <SelectItem key={time} value={time}>
                     {time}
                   </SelectItem>
                 ))}
+                {availableTimeSlots.length === 0 && (
+                  <SelectItem value="" disabled>
+                    No available time slots
+                  </SelectItem>
+                )}
               </SelectContent>
             </Select>
           </div>

@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { LogOut, Calendar, Clock, DollarSign, User, Phone, Mail, MapPin, FileText, Edit, Trash2, Plus } from "lucide-react";
+import { AppointmentActions } from "@/components/AppointmentActions";
 import { format } from "date-fns";
 
 interface Appointment {
@@ -58,9 +59,15 @@ export default function Dashboard() {
       
       setProfile(profileData);
       
-      // If admin, redirect to admin dashboard
-      if (profileData?.role === 'admin' || profileData?.role === 'super_admin') {
+      // If user has admin role, redirect to admin page
+      if (profileData && profileData.role === 'admin') {
         navigate("/admin");
+        return;
+      }
+
+      // If user has super_admin role, redirect to super admin page
+      if (profileData && profileData.role === 'super_admin') {
+        navigate("/super-admin");
         return;
       }
     };
@@ -318,19 +325,14 @@ export default function Dashboard() {
                         </TableCell>
                         
                         <TableCell>
-                          <div className="flex space-x-2">
-                            {(appointment.status === 'pending' || appointment.status === 'confirmed') && 
-                             new Date(appointment.appointment_date) > new Date() && (
-                              <>
-                                <Button size="sm" variant="outline">
-                                  <Edit className="h-3 w-3" />
-                                </Button>
-                                <Button size="sm" variant="outline">
-                                  <Trash2 className="h-3 w-3" />
-                                </Button>
-                              </>
-                            )}
-                          </div>
+                          <AppointmentActions
+                            appointmentId={appointment.id}
+                            status={appointment.status}
+                            appointmentDate={appointment.appointment_date}
+                            appointmentTime={appointment.appointment_time}
+                            onUpdate={fetchMyAppointments}
+                            userRole={profile?.role}
+                          />
                         </TableCell>
                       </TableRow>
                     ))}
