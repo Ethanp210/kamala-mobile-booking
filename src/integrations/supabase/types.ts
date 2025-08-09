@@ -14,158 +14,27 @@ export type Database = {
   }
   public: {
     Tables: {
-      appointments: {
-        Row: {
-          appointment_date: string
-          appointment_time: string
-          cancellation_reason: string | null
-          cancelled_at: string | null
-          client_address: string
-          client_email: string
-          client_name: string
-          client_phone: string
-          created_at: string
-          duration_minutes: number
-          external_calendar_id: string | null
-          id: string
-          notes: string | null
-          service_id: string
-          status: string
-          total_price: number
-          updated_at: string
-          user_id: string | null
-        }
-        Insert: {
-          appointment_date: string
-          appointment_time: string
-          cancellation_reason?: string | null
-          cancelled_at?: string | null
-          client_address: string
-          client_email: string
-          client_name: string
-          client_phone: string
-          created_at?: string
-          duration_minutes: number
-          external_calendar_id?: string | null
-          id?: string
-          notes?: string | null
-          service_id: string
-          status?: string
-          total_price: number
-          updated_at?: string
-          user_id?: string | null
-        }
-        Update: {
-          appointment_date?: string
-          appointment_time?: string
-          cancellation_reason?: string | null
-          cancelled_at?: string | null
-          client_address?: string
-          client_email?: string
-          client_name?: string
-          client_phone?: string
-          created_at?: string
-          duration_minutes?: number
-          external_calendar_id?: string | null
-          id?: string
-          notes?: string | null
-          service_id?: string
-          status?: string
-          total_price?: number
-          updated_at?: string
-          user_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "appointments_service_id_fkey"
-            columns: ["service_id"]
-            isOneToOne: false
-            referencedRelation: "services"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      availability: {
-        Row: {
-          created_at: string
-          day_of_week: number
-          end_time: string
-          id: string
-          is_active: boolean
-          start_time: string
-        }
-        Insert: {
-          created_at?: string
-          day_of_week: number
-          end_time: string
-          id?: string
-          is_active?: boolean
-          start_time: string
-        }
-        Update: {
-          created_at?: string
-          day_of_week?: number
-          end_time?: string
-          id?: string
-          is_active?: boolean
-          start_time?: string
-        }
-        Relationships: []
-      }
       profiles: {
         Row: {
           created_at: string | null
           email: string | null
           id: string
-          role: Database["public"]["Enums"]["user_role"] | null
+          role: string | null
           updated_at: string | null
         }
         Insert: {
           created_at?: string | null
           email?: string | null
           id: string
-          role?: Database["public"]["Enums"]["user_role"] | null
+          role?: string | null
           updated_at?: string | null
         }
         Update: {
           created_at?: string | null
           email?: string | null
           id?: string
-          role?: Database["public"]["Enums"]["user_role"] | null
+          role?: string | null
           updated_at?: string | null
-        }
-        Relationships: []
-      }
-      services: {
-        Row: {
-          created_at: string
-          description: string | null
-          duration_minutes: number
-          id: string
-          is_active: boolean
-          name: string
-          price: number
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          description?: string | null
-          duration_minutes: number
-          id?: string
-          is_active?: boolean
-          name: string
-          price: number
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          description?: string | null
-          duration_minutes?: number
-          id?: string
-          is_active?: boolean
-          name?: string
-          price?: number
-          updated_at?: string
         }
         Relationships: []
       }
@@ -174,10 +43,6 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      get_available_time_slots: {
-        Args: { booking_date: string; service_duration_minutes?: number }
-        Returns: string[]
-      }
       get_user_role: {
         Args: Record<PropertyKey, never> | { user_id: string }
         Returns: Database["public"]["Enums"]["user_role"]
