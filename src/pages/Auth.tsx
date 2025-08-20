@@ -24,18 +24,7 @@ export default function Auth() {
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
         setUser(session.user);
-        // Get user role to determine redirect
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('role')
-          .eq('id', session.user.id)
-          .single();
-        
-        if (profile?.role === 'admin' || profile?.role === 'super_admin') {
-          navigate("/admin");
-        } else {
-          navigate("/dashboard");
-        }
+        navigate("/");
       }
     };
 
@@ -46,18 +35,7 @@ export default function Auth() {
       async (event, session) => {
         if (session?.user) {
           setUser(session.user);
-          // Get user role to determine redirect
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('role')
-            .eq('id', session.user.id)
-            .single();
-          
-          if (profile?.role === 'admin' || profile?.role === 'super_admin') {
-            navigate("/admin");
-          } else {
-            navigate("/dashboard");
-          }
+          navigate("/");
         } else {
           setUser(null);
         }
@@ -109,7 +87,7 @@ export default function Auth() {
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/dashboard`
+          emailRedirectTo: `${window.location.origin}/`
         }
       });
 

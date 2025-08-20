@@ -19,21 +19,18 @@ export type Database = {
           created_at: string | null
           email: string | null
           id: string
-          role: string | null
           updated_at: string | null
         }
         Insert: {
           created_at?: string | null
           email?: string | null
           id: string
-          role?: string | null
           updated_at?: string | null
         }
         Update: {
           created_at?: string | null
           email?: string | null
           id?: string
-          role?: string | null
           updated_at?: string | null
         }
         Relationships: []
@@ -43,14 +40,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      get_current_user_role: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
-      get_user_role: {
-        Args: Record<PropertyKey, never> | { user_id: string }
-        Returns: Database["public"]["Enums"]["user_role"]
-      }
+      [_ in never]: never
     }
     Enums: {
       user_role: "customer" | "admin" | "super_admin"

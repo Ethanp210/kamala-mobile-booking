@@ -34,7 +34,10 @@ export default function Index() {
           <h1 className="text-2xl font-bold text-primary">Kamala Massage</h1>
           <div className="flex gap-4">
             <Button variant="ghost" asChild>
-              <a href="/auth">Admin Sign In</a>
+              <a href="/auth">Sign In</a>
+            </Button>
+            <Button variant="outline">
+              Payment Portal
             </Button>
             <Button onClick={handleBookingClick}>
               <Calendar className="mr-2 h-4 w-4" />
